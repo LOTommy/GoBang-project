@@ -1,0 +1,22 @@
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=Big5">
+    <title>My Webpage</title>
+    <link rel="stylesheet" href="style.css">
+  </head>
+  <body>
+    <div class="login-page">
+      <div class="form">
+        <div class="login-form">
+          <h3>Welcome User</h3>
+          <button id="newgamebtn" onclick="fetch('locanhost:3000/game')">New Game</button>
+          <button id="cpugamebtn" onclick="fetch('locanhost:3000/sologame')">New Game with CPU</button>
+          <button id="gamerecbtn" onclick="fetch('localhost:3000/records')">Game Records</button>
+          <button id="logoutbtn" onclick="fetch('localhost:3000/logout');">logout</button>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
