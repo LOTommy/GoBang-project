@@ -34,6 +34,7 @@ class GameBoard(pg.sprite.Sprite):
         player2=Player(name2,"w") if name2!=None else None
         self.players=[player1,player2]
         self.current_player=player1
+        self.current_colour="b"
         self.move_position=None
 
         #theoretical board
@@ -54,10 +55,11 @@ class GameBoard(pg.sprite.Sprite):
             return False
 
     def move(self,x,y):
-        self.board[x][y]=self.current_player.colour
+
+        self.board[x][y]=self.current_colour
 
     def is_game_over(self):
-        c=self.current_player.colour
+        c=self.current_colour
         for row in range(BOARD_SIZE):
             for col in range(BOARD_SIZE):
                 if self.board[row][col]==c:
@@ -121,20 +123,24 @@ class GameBoard(pg.sprite.Sprite):
             self.display_board()
 
             #display ellapsed time
-            msg="ellapsed time: "+str(round(self.ellapsed_time))+" seconds"
-            self.display_info(msg,(120,140),14,overwrite=True)
-
+            old_ellapsed_time=self.ellapsed_time
             self.timer()
-            msg="ellapsed time: "+str(round(self.ellapsed_time))+" seconds"
-            self.display_info(msg,(120,140),14)
+            new_ellapsed_time=self.ellapsed_time
+            if new_ellapsed_time!=old_ellapsed_time:
+                msg=f"ellapsed time: {old_ellapsed_time} seconds"
+                self.display_info(msg,(120,140),14,overwrite=True)
+
+                msg=f"ellapsed time: {new_ellapsed_time} seconds"
+                self.display_info(msg,(120,140),14)
 
             #display current player
-            chess_colour="black" if self.current_player.colour=="b" else "white"
-            msg=self.current_player.name+" ("+chess_colour+")'s turn:"
-            self.display_info(msg,(400,20),24)
-            pg.display.update()
+            if self.current_player!=None:
+                chess_colour="black" if self.current_colour=="b" else "white"
+                msg=self.current_player.name+" ("+chess_colour+")'s turn:"
+                self.display_info(msg,(400,20),24)
+                pg.display.update()
 
-            if self.game_type=="PvP":
+
                 mouse_x,mouse_y=pg.mouse.get_pos()
                 for event in pg.event.get():
                     if event.type == pg.QUIT:
@@ -154,12 +160,27 @@ class GameBoard(pg.sprite.Sprite):
 
                             keep_going=not self.is_game_over()
                             if keep_going:
-                                msg=self.current_player.name+"'s turn:"
                                 self.display_info(msg,(400,20),24,overwrite=True)
-
                                 self.current_player=self.players[1] if self.current_player==self.players[0] else self.players[0]
+                                self.current_colour=self.current_player.colour if self.current_player!=None else "w"
+            else:
+                msg="computer (white)'s turn:"
+                self.display_info(msg,(400,20),24)
+                pg.display.update()
+                time.sleep(1)
+                x,y=self.computer_move()
+                self.move(x,y)
+                self.move_position=(x,y)
+                self.update_squares()
+                self.display_board()
+                pg.display.update()
 
-                    
+                keep_going=not self.is_game_over()
+                if keep_going:
+                    self.display_info(msg,(400,20),24,overwrite=True)
+                    self.current_player=self.players[0]
+                    self.current_colour="b"
+
 
     #transform methods
     def get_pos_from_screen(self,mouse_x,mouse_y):
@@ -199,7 +220,9 @@ class GameBoard(pg.sprite.Sprite):
 
     #timer
     def timer(self):
-        self.ellapsed_time=time.perf_counter()-BASE_TIME
+        new_time=round(time.perf_counter()-BASE_TIME)
+        if new_time!=self.ellapsed_time:
+            self.ellapsed_time=new_time
 
     #upload
     #def upload_game_info(self):
