@@ -3,14 +3,17 @@ import time
 import datetime
 import random
 
-from classes.Player import Player
+from .Player import Player
 from .Square import Square
+from .Piece import Piece
 
 WIDTH_MARGIN=300
 HEIGHT_MARGIN=100
 BOARD_SIZE=19
-SQ_WIDTH=30
-SQ_HEIGHT=30
+SQ_WIDTH=40
+SQ_HEIGHT=40
+RETRACT_RECT=[600,900,150,50]
+
 BG_COLOUR=(202, 148, 94)
 SCREEN_SIZE=(1200,1000)
 
@@ -45,7 +48,8 @@ class GameBoard(pg.sprite.Sprite):
         self.window = pg.display.set_mode(SCREEN_SIZE)
         self.mouse_x=0
         self.mouse_y=0
-        self.board_squares=[[Square(i,j,self.board[i][j]) for i in range(BOARD_SIZE)]for j in range(BOARD_SIZE)]
+        self.board_squares=[[Square(i,j) for i in range(BOARD_SIZE-1)]for j in range(BOARD_SIZE-1)]
+        self.board_pieces=[[Piece(i,j) for i in range(BOARD_SIZE)]for j in range(BOARD_SIZE)]
 
 
 
@@ -58,8 +62,11 @@ class GameBoard(pg.sprite.Sprite):
             return False
 
     def move(self,x,y):
-
         self.board[x][y]=self.current_colour
+        self.move_position=(x,y)
+        self.update_pieces()
+        self.display_board()
+        pg.display.update()
 
     def is_game_over(self):
         c=self.current_colour
@@ -85,23 +92,24 @@ class GameBoard(pg.sprite.Sprite):
         
         return False
 
-
     def get_last_move(self):
         return self.move_position
     
-
-
-
-
     def retract(self):
         x,y=self.get_last_move()
+        self.board[x][y]="r"
+        self.update_pieces()
+        self.display_board()
+
         self.board[x][y]=""
-        self.update_squares()
+        self.update_pieces()
+        self.display_board()
+        pg.display.update()
 
     def computer_move(self):
         while True:
-            x=random.randint(0,18)
-            y=random.randint(0,18)
+            x=random.randint(0,BOARD_SIZE)
+            y=random.randint(0,BOARD_SIZE)
 
             if self.is_move_valid(x,y):
                 return (x,y)
@@ -120,9 +128,9 @@ class GameBoard(pg.sprite.Sprite):
         self.display_text(msg,(120,120),12)
         pg.display.update()
 
-        #display retract button
-        pg.draw.rect(self.window,(255,192,0),[600,800,150,50])
-        self.display_text("retract",(675,825),24)
+        # #display retract button
+        # pg.draw.rect(self.window,(255,192,0),[600,800,150,50])
+        # self.display_text("retract",(675,825),24)
 
         keep_going=True
         while keep_going:
@@ -141,19 +149,20 @@ class GameBoard(pg.sprite.Sprite):
                 self.display_text(msg,(120,140),14)
 
             #display retract button
-            if self.mouse_x>=600 and self.mouse_x<=750 and self.mouse_y>=800 and self.mouse_y<=850:
+            if self.mouse_x>=RETRACT_RECT[0] and self.mouse_x<=RETRACT_RECT[0]+RETRACT_RECT[2] and self.mouse_y>=RETRACT_RECT[1] and self.mouse_y<=RETRACT_RECT[1]+RETRACT_RECT[3]:
                 box_colour=(166,39,217)
             else:
                 box_colour=(255,192,0)
-            pg.draw.rect(self.window,box_colour,[600,800,150,50])
-            self.display_text("retract",(675,825),24)
+            pg.draw.rect(self.window,box_colour,RETRACT_RECT)
+            self.display_text("retract",(RETRACT_RECT[0]+RETRACT_RECT[2]/2,RETRACT_RECT[1]+RETRACT_RECT[3]/2),24)
 
-
+            #display retract message when clicking retract button
             self.display_retract_msg(not self.retract_process)
 
 
             pg.display.update()
 
+            #player move
             if self.current_player!=None:
             #display current player
                 chess_colour="black" if self.current_colour=="b" else "white"
@@ -166,7 +175,7 @@ class GameBoard(pg.sprite.Sprite):
                         keep_going=False
                     elif event.type == pg.MOUSEBUTTONDOWN:
                         #retracting
-                        if self.mouse_x>=600 and self.mouse_x<=750 and self.mouse_y>=800 and self.mouse_y<=850:
+                        if self.mouse_x>=RETRACT_RECT[0] and self.mouse_x<=RETRACT_RECT[0]+RETRACT_RECT[2] and self.mouse_y>=RETRACT_RECT[1] and self.mouse_y<=RETRACT_RECT[1]+RETRACT_RECT[3]:
                             self.retract_process=True
                             continue #no need to change player
                         #waiting for retract response
@@ -180,7 +189,7 @@ class GameBoard(pg.sprite.Sprite):
                                 self.retract_process=False
                             #no retract
                             elif self.mouse_x>=1050 and self.mouse_x<=1150 and self.mouse_y>=30 and self.mouse_y<=60: 
-                                msg=f"{self.current_player.name} does not allow retract!"
+                                msg=f"{self.current_player.name} does not allow retracting!"
                                 self.display_text(msg,(600,80),26)
                                 time.sleep(1)
                                 self.display_text(msg,(600,80),26,overwrite=True)
@@ -188,17 +197,16 @@ class GameBoard(pg.sprite.Sprite):
                                 continue #no need to change player
 
                         #put a stone
-                        else:
+                        elif self.mouse_x>=WIDTH_MARGIN-SQ_WIDTH/2 and self.mouse_x<WIDTH_MARGIN+SQ_WIDTH*(BOARD_SIZE-1)+SQ_WIDTH/2 and self.mouse_y>=HEIGHT_MARGIN-SQ_HEIGHT/2 and self.mouse_y<HEIGHT_MARGIN+SQ_HEIGHT*(BOARD_SIZE-1)+SQ_HEIGHT/2:
                             x,y=self.get_pos_from_screen()
                             can_move=self.is_move_valid(x,y)
                             if not can_move:
-                                continue
-                            
+                                continue                            
                             self.move(x,y)
-                            self.move_position=(x,y)
-                            self.update_squares()
-                            self.display_board()
-                            pg.display.update()
+
+                        #do nothing
+                        else:
+                            continue
 
                         #check game over & change current player
                         keep_going=not self.is_game_over()
@@ -206,6 +214,7 @@ class GameBoard(pg.sprite.Sprite):
                             self.display_text(msg,(400,20),24,overwrite=True)
                             self.current_player=self.players[1] if self.current_player==self.players[0] else self.players[0]
                             self.current_colour=self.current_player.colour if self.current_player!=None else "w"
+            #computer move
             else:
                 msg="computer (white)'s turn:"
                 self.display_text(msg,(400,20),24)
@@ -213,10 +222,6 @@ class GameBoard(pg.sprite.Sprite):
                 time.sleep(1)
                 x,y=self.computer_move()
                 self.move(x,y)
-                self.move_position=(x,y)
-                self.update_squares()
-                self.display_board()
-                pg.display.update()
 
                 keep_going=not self.is_game_over()
                 if keep_going:
@@ -233,26 +238,39 @@ class GameBoard(pg.sprite.Sprite):
 
     #transform methods
     def get_pos_from_screen(self):
-        col=int((self.mouse_x-WIDTH_MARGIN)/SQ_WIDTH)
-        row=int((self.mouse_y-HEIGHT_MARGIN)/SQ_HEIGHT)
+        self.mouse_x-=WIDTH_MARGIN
+        self.mouse_y-=HEIGHT_MARGIN
+
+        if self.mouse_x<0:
+            col=0
+        # elif self.mouse_x>SQ_WIDTH*BOARD_SIZE+SQ_WIDTH/2:
+        #     col=18
+        else:    
+            col=round((self.mouse_x)/SQ_WIDTH)
+
+        if self.mouse_y<0:
+            row=0
+        # elif self.mouse_y>SQ_HEIGHT*BOARD_SIZE+SQ_HEIGHT/2:
+        #     row=18
+        else:    
+            row=round((self.mouse_y)/SQ_HEIGHT)
+           
         return (row,col)
 
-    def update_squares(self):
+    def update_pieces(self):
         for i in range(BOARD_SIZE):
             for j in range(BOARD_SIZE):
-                if self.board[i][j]=="b":
-                    self.board_squares[i][j].occupying_piece.colour=(0,0,0)
-                elif self.board[i][j]=="w":
-                    self.board_squares[i][j].occupying_piece.colour=(255,255,255)
-                else:
-                    self.board_squares[i][j].occupying_piece.colour=BG_COLOUR   
-
+                self.board_pieces[i][j].update_colour(self.board[i][j])
 
     #display methods
     def display_board(self):
+        for i in range(BOARD_SIZE-1):
+            for j in range(BOARD_SIZE-1):
+                self.board_squares[i][j].draw(self.window)
+
         for i in range(BOARD_SIZE):
             for j in range(BOARD_SIZE):
-                self.board_squares[i][j].draw(self.window)
+                self.board_pieces[i][j].draw(self.window)
 
     def display_text(self,msg,centre,size,overwrite=False,final_display=False):
         bg=None
@@ -309,7 +327,7 @@ class GameBoard(pg.sprite.Sprite):
 
     #timer
     def timer(self):
-        new_time=round(time.perf_counter()-BASE_TIME)
+        new_time=int(time.perf_counter()-BASE_TIME)
         if new_time!=self.ellapsed_time:
             self.ellapsed_time=new_time
 
