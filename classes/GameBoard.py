@@ -2,6 +2,9 @@ import pygame as pg
 import time
 import datetime
 import random
+#import mysql.connector
+import matplotlib.image as mpimg
+
 
 from .Player import Player
 from .Square import Square
@@ -233,6 +236,9 @@ class GameBoard(pg.sprite.Sprite):
         self.display_text(f"{winner} wins!",(SCREEN_SIZE[0]/2,SCREEN_SIZE[1]/2),48,final_display=True)
         time.sleep(2)
         self.display_text("Uploading game info",(SCREEN_SIZE[0]/2,SCREEN_SIZE[1]/2+200),48,final_display=True)
+
+
+        self.upload_game_info(winner)        
         time.sleep(2)
         pg.quit()
 
@@ -332,4 +338,35 @@ class GameBoard(pg.sprite.Sprite):
             self.ellapsed_time=new_time
 
     #upload
-    #def upload_game_info(self):
+    def upload_game_info(self,winner):
+        pg.image.save(self.window, "final_board.jpg")
+        img=mpimg.imread("final_board.jpg")
+        print(img)
+        with open("final_board.jpg", 'rb') as file:
+            bin_img = file.read()
+
+
+        conn = mysql.connector.connect(host="csci3100-mysql-server.mysql.database.azure.com",
+            database="gobang",
+            user="ylm",
+            password="ibTdY8Kp99gSF6")
+        
+        cursor = conn.cursor()
+
+        statement = (
+        "INSERT INTO game_records(player1_name, player2_name, winner, start_time, ellapsed_time, final_board)"
+        "VALUES (%s, %s, %s, %s, %s)"
+        )
+        p2="Computer" if self.game_type=="PvC" else self.players[1].name
+
+        data = (self.players[0].name, p2, winner, self.start_time, self.ellapsed_time, bin_img)
+
+        try:
+            cursor.execute(statement, data)
+            conn.commit()
+
+        except:
+            conn.rollback()
+
+
+        conn.close()
