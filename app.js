@@ -1,11 +1,11 @@
 const express = require('express');
 const mysql = require('mysql');
 const bodyParser = require('body-parser');
+const session = require('express-session');
 
 const app = express();
 const port = 3000;
 
-// Replace the placeholders with your actual MySQL database credentials
 const db = mysql.createConnection({
     host: 'localhost',
     user: 'remoteuser',
@@ -21,6 +21,14 @@ db.connect((err) => {
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
+app.use(
+    session({
+      secret: 'oWM8NSYYQjhq4j',
+      resave: false,
+      saveUninitialized: true,
+    })
+  );
+
 app.use(express.static(__dirname + '/public'));
 
 app.get('/', (req, res) => {
@@ -35,6 +43,10 @@ app.post('/login', (req, res) => {
         if (err) throw err;
 
         if (result.length > 0) {
+            req.session.user = {
+                username: result[0].username,
+                isAdmin: result[0].is_admin,
+            };
             res.json({ message: 'Login successful', redirectTo: '/main' });
         } else {
             res.json({ message: 'Incorrect username or password' });
@@ -70,7 +82,6 @@ app.post('/register', (req, res) => {
     });
 });
 
-
 app.get('/main', (req, res) => {
     // Handle main page request
 });
@@ -79,6 +90,63 @@ app.get('/logout', (req, res) => {
     req.session.destroy();
     res.redirect('/');
 });
+
+function isAdmin(req, res, next) {
+    const userIsAdmin = req.session && req.session.user && req.session.user.isAdmin;
+  
+    if (userIsAdmin) {
+      next();
+    } else {
+      res.status(403).send('Access denied');
+    }
+}
+
+app.get('/admin', isAdmin, (req, res) => {
+    // Send the admin panel HTML file
+    res.sendFile(__dirname + '/public' + '/admin.html');
+  });
+  
+  // Get all users route
+  app.get('/admin/users', isAdmin, (req, res) => {
+    const query = 'SELECT * FROM users';
+    db.query(query, (err, results) => {
+      if (err) {
+        console.error(err);
+        res.status(500).send('Error fetching users');
+        return;
+      }
+      res.json(results);
+    });
+  });
+  
+  // Get game records for a specific user
+  app.get('/admin/game-records/:username', isAdmin, (req, res) => {
+    const { username } = req.params;
+    const query = 'SELECT * FROM game_records WHERE username = ?';
+    db.query(query, [username], (err, results) => {
+      if (err) {
+        console.error(err);
+        res.status(500).send('Error fetching game records');
+        return;
+      }
+      res.json(results);
+    });
+  });
+  
+  // Delete a user route
+  app.delete('/admin/delete-user/:username', isAdmin, (req, res) => {
+    const { username } = req.params;
+    const query = 'DELETE FROM users WHERE username = ?';
+    db.query(query, [username], (err, results) => {
+      if (err) {
+        console.error(err);
+        res.status(500).send('Error deleting user');
+        return;
+      }
+      res.send('User deleted successfully');
+    });
+  });
+  
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
