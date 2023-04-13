@@ -2,7 +2,7 @@ import pygame as pg
 import time
 import datetime
 import random
-#import mysql.connector
+import mysql.connector
 import matplotlib.image as mpimg
 
 
