@@ -29,17 +29,25 @@ class Sologame extends React.Component{
   }
 }
 
+class Board extends React.Component {
+  render(){
+    return(
+      <img crossOrigin="anonymous" src={this.props.id+'.jpg'} style={{width: '70%'}}/>
+    )
+  }
+}
+
 class Record extends React.Component{
   constructor(props){
     super(props);
     this.state = {
-      loading: true,
-      //games: [{id:123, username: 'test', password: 'tpwd'}]
+      loading: true,    // set false for debug
+      //games: [{gameID: 'awd321', start_time:123, elapsed_time: 999, winner: 'player1'}]
     };
   }
 
   getrecord = ()=>{
-    fetch('path to fetch game record')
+    fetch('localhost:3000/admin/game-records/'+ window.sessionStorage.getItem('username'))
     .then(res=>res.json())
     .then(res=>{
       this.setState({
@@ -48,35 +56,39 @@ class Record extends React.Component{
       })
     })
   }
-  
+  getboardimg = (id)=>{
+    
+  }
   render(){
     if(this.state.loading){
       return <img src="/loading.gif" style={{width: '10%', marginLeft: '50%', marginTop: '20%'}}/>
     }
     return(
       <div className="p-5">
-        <h1 style={{ color: "aliceblue" }}> User List</h1>
+        <h1 style={{color: 'aliceblue'}}> Game Records</h1>
         <table className="table table-dark">
           <thead>
             <tr>
-              <th scope="col">username</th>
-              <th scope="col">password</th>
-              <th scope="col">delete user</th>
+              <th scope="col">Time Started</th>
+              <th scope="col">Time Elapsed</th>
+              <th scope="col">Winner</th>
+              <th scope="col">Final Board</th>
             </tr>
           </thead>
           <tbody>
-            {this.state.users.map((row) => {
+            {this.state.games.map((row) => {
               return(
                 <tr>
-                  <td>{row.username}</td>
-                  <td>{row.password}</td>
-                  <td><button onClick={()=>this.deluser(row.id)}><i class="bi bi-trash"></i></button></td>
+                  <td>{row.start_time}</td>
+                  <td>{row.elapsed_time}</td>
+                  <td>{row.winner}</td>
+                  <td><button onClick={()=>this.getboardimg(row.gameID)}><i class="bi bi-eye"></i></button></td>
                 </tr>
               )
             })}
           </tbody>
         </table>
-      </div>
+    </div>
     )
   }
 }
