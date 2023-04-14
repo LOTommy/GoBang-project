@@ -87,6 +87,7 @@ async function login() {
 
     // If the login is successful, redirect the user to the main page
     if (responseData.redirectTo) {
+        sessionStorage.setItem("username", username);
         window.location.href = responseData.redirectTo;
     } else {
         // Display an error message if the login failed
@@ -97,4 +98,3 @@ async function login() {
 function generateGameId() {
     return Math.random().toString(36).substr(2, 9);
 }
-

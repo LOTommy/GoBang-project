@@ -14,7 +14,7 @@ function getQueryParameter(parameter) {
   return urlParams.get(parameter);
 }
 
-const username = getQueryParameter('username');
+const username = sessionStorage.getItem('username');
 const gameId = getQueryParameter('gameId');
 
 joinGame(username, gameId);
@@ -71,6 +71,17 @@ socket.on('playerJoined', (data) => {
 
 function makeMove(username, gameId, move) {
   socket.emit('move', { username, gameId, move });
+}
+
+function randomMove() {
+  let x = Math.floor(Math.random() * boardSize);
+  let y = Math.floor(Math.random() * boardSize);
+  if (!board[x][y]) {
+    board[x][y] = 'white';
+    console.log(x+''+y);
+  } else {
+    randomMove();   // try again
+  }
 }
 
 socket.on('playerMove', (data) => {
@@ -132,6 +143,8 @@ function handleCellClick(event) {
   if (checkWin(row, col)) {
     alert(`Player ${currentPlayer === 'black' ? 1 : 2} (${currentPlayer}) wins!`);
   } else {
+    randomMove();
+    renderBoard(board);
   }
 }
 
