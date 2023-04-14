@@ -4,8 +4,8 @@ const startTimeDisplay = document.getElementById('start-time');
 const elapsedTimeDisplay = document.getElementById('elapsed-time');
 const socket = io();
 const boardSize = 19;
-const board = Array.from({ length: boardSize }, () => Array(boardSize).fill(null));
 
+let board = Array.from({ length: boardSize }, () => Array(boardSize).fill(null));
 let currentPlayer = 'black';
 let myColor = null;
 
@@ -14,7 +14,8 @@ function getQueryParameter(parameter) {
   return urlParams.get(parameter);
 }
 
-const username = sessionStorage.getItem('username');
+//const username = sessionStorage.getItem('username');
+const username = getQueryParameter('username');
 const gameId = getQueryParameter('gameId');
 
 joinGame(username, gameId);

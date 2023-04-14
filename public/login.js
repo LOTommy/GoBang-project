@@ -6,26 +6,32 @@ const loginError = document.getElementById('login-error');
 const signupError = document.getElementById('signup-error');
 
 loginForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
+    // Get the form input values
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
 
+    // Send a POST request to the server with the input data
     const response = await fetch('/login', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json',
         },
-        body: `username=${username}&password=${password}`,
+        body: JSON.stringify({ username, password }),
     });
 
-    const data = await response.json();
+    // Parse the server response as JSON
+    const responseData = await response.json();
 
-    if (data.loggedIn) {
+    // If the login is successful, redirect the user to the main page
+    if (responseData.redirectTo) {
         const gameId = generateGameId();
         const gameUrl = `/main?username=${encodeURIComponent(username)}&gameId=${encodeURIComponent(gameId)}`;
         window.location.href = gameUrl;
+        /*sessionStorage.setItem("username", username);
+        window.location.href = responseData.redirectTo;*/
     } else {
-        loginError.textContent = data.message;
+        // Display an error message if the login failed
+        alert(responseData.message);
     }
 });
 
@@ -67,33 +73,6 @@ signupBtn.addEventListener('click', () => {
     loginForm.style.display = 'none';
     signupForm.style.display = 'block';
 });
-
-async function login() {
-    // Get the form input values
-    const username = document.getElementById('username').value;
-    const password = document.getElementById('password').value;
-
-    // Send a POST request to the server with the input data
-    const response = await fetch('/login', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-    });
-
-    // Parse the server response as JSON
-    const responseData = await response.json();
-
-    // If the login is successful, redirect the user to the main page
-    if (responseData.redirectTo) {
-        sessionStorage.setItem("username", username);
-        window.location.href = responseData.redirectTo;
-    } else {
-        // Display an error message if the login failed
-        alert(responseData.message);
-    }
-}
 
 function generateGameId() {
     return Math.random().toString(36).substr(2, 9);
