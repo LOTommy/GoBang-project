@@ -21,11 +21,7 @@ class Actions extends React.Component {
 
 class Sologame extends React.Component{
   render(){
-    return(
-      <div style={{margin: '1rem', height:'80%'}}>
-        <iframe src="localhost:3000/main" style={{width:'100%', height:'100%'}}></iframe>
-      </div>
-    )
+      window.location = 'localhost:3000/main';
   }
 }
 
