@@ -12,9 +12,9 @@ export class CreateAcc extends React.Component {
               <p>Please enter your information.</p>
             </div>
           </div>
-          <form class="login-form" action="localhost:3000/register" method="POST">
-            <input type="text" placeholder="username"/>
-            <input type="password" placeholder="password"/>
+          <form className="login-form" action="http://localhost:3000/register" method="POST">
+            <input name='username' type="text" placeholder="username"/>
+            <input name='password' type="password" placeholder="password"/>
             <button id="submbtn">Create</button>
             <p className="message">Registered? <Link to="/login"><a href="#">Login</a></Link></p>
           </form>
