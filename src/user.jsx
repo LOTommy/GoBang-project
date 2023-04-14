@@ -9,7 +9,7 @@ class Actions extends React.Component {
           <div className="login-form">
             <h3>Welcome {window.sessionStorage.getItem('username')}</h3>
             <button id="newgamebtn" onclick={()=>fetch(' game url')}>New Game</button>
-            <button id="cpugamebtn"  onClick={()=>fetch('solo game url')}>New Game with CPU</button>
+            <Link to="/user/sologame"><button id="cpugamebtn">New Game with CPU</button></Link>
             <Link to="/user/record"><button id="gamerecbtn">Game Records</button></Link>            
             <button id="logoutbtn" onClick={()=>{fetch('localhost:3000/logout')}}>Logout</button>
           </div>
@@ -23,7 +23,7 @@ class Sologame extends React.Component{
   render(){
     return(
       <div style={{margin: '1rem', height:'80%'}}>
-        <iframe src="sologame server url" style={{width:'100%', height:'100%'}}></iframe>
+        <iframe src="localhost:3000/main" style={{width:'100%', height:'100%'}}></iframe>
       </div>
     )
   }
