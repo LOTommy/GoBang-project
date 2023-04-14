@@ -21,7 +21,9 @@ loginForm.addEventListener('submit', async (e) => {
     const data = await response.json();
 
     if (data.loggedIn) {
-        window.location.href = '/main';
+        const gameId = generateGameId();
+        const gameUrl = `/main?username=${encodeURIComponent(username)}&gameId=${encodeURIComponent(gameId)}`;
+        window.location.href = gameUrl;
     } else {
         loginError.textContent = data.message;
     }
@@ -91,3 +93,8 @@ async function login() {
         alert(responseData.message);
     }
 }
+
+function generateGameId() {
+    return Math.random().toString(36).substr(2, 9);
+}
+

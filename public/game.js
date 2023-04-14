@@ -1,31 +1,3 @@
-// document.getElementById('login-form').addEventListener('submit', (e) => {
-//   e.preventDefault();
-
-//   const formData = new FormData(e.target);
-//   const username = formData.get('username');
-//   const password = formData.get('password');
-
-//   fetch('/login', {
-//       method: 'POST',
-//       headers: {
-//           'Content-Type': 'application/json',
-//       },
-//       body: JSON.stringify({ username, password }),
-//   })
-//       .then((response) => response.json())
-//       .then((data) => {
-//           if (data.redirectTo) {
-//               window.location.href = data.redirectTo;
-//           } else {
-//               // Show error message
-//               alert(data.message);
-//           }
-//       })
-//       .catch((error) => {
-//           console.error('Error:', error);
-//       });
-// });
-
 const gameBoard = document.getElementById('game-board');
 const currentPlayerDisplay = document.getElementById('current-player');
 const startTimeDisplay = document.getElementById('start-time');
@@ -35,6 +7,17 @@ const boardSize = 19;
 const board = Array.from({ length: boardSize }, () => Array(boardSize).fill(null));
 
 let currentPlayer = 'black';
+let myColor = null;
+
+function getQueryParameter(parameter) {
+  const urlParams = new URLSearchParams(window.location.search);
+  return urlParams.get(parameter);
+}
+
+const username = getQueryParameter('username');
+const gameId = getQueryParameter('gameId');
+
+joinGame(username, gameId);
 
 // Render the initial game board
 for (let row = 0; row < boardSize; row++) {
@@ -67,16 +50,23 @@ function renderBoard(board) {
   }
 }
 
+/*socket.emit("create game", {
+  gameId: gameId,
+  username: username, // Use the username from gameboard.html
+});*/
+
 function joinGame(username, gameId) {
   socket.emit('joinGame', { username, gameId });
 }
 
 socket.on('playerJoined', (data) => {
   console.log(`Player ${data.username} joined the game`);
-  // Update the UI or game state with the new player's information
   const playerNumber = data.playerNumber;
-  const playerNames = document.getElementById('player-names');
-  playerNames.textContent = `Player ${playerNumber}: ${data.username} ${playerNames.textContent}`;
+  const playerNames = document.getElementById(`player-${playerNumber}`);
+  playerNames.textContent = `Player ${playerNumber}: ${data.username}`;
+  if (data.username === username) {
+    myColor = playerNumber === 1 ? 'black' : 'white';
+  }
 });
 
 function makeMove(username, gameId, move) {
@@ -122,6 +112,10 @@ setInterval(() => {
 }, 1000);
 
 function handleCellClick(event) {
+  if (currentPlayer !== myColor) {
+    alert("It's not your turn!");
+    return;
+  }
   const row = parseInt(event.currentTarget.dataset.row, 10);
   const col = parseInt(event.currentTarget.dataset.col, 10);
 
@@ -138,8 +132,6 @@ function handleCellClick(event) {
   if (checkWin(row, col)) {
     alert(`Player ${currentPlayer === 'black' ? 1 : 2} (${currentPlayer}) wins!`);
   } else {
-    currentPlayer = currentPlayer === 'black' ? 'white' : 'black';
-    currentPlayerDisplay.textContent = `Current Player: Player ${currentPlayer === 'black' ? 1 : 2} (${currentPlayer})`;
   }
 }
 

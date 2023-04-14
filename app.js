@@ -4,36 +4,48 @@ const bodyParser = require('body-parser');
 const session = require('express-session');
 const http = require('http');
 const socketIO = require('socket.io');
-
+const boardSize = 19; // or any other value you want for the board size
 const app = express();
 const port = 3000;
 const server = http.createServer(app);
 const io = socketIO(server);
 
 const games =  {};
+let nextGameId = 1; // Or any initial value you want
 
 io.on('connection', (socket) => {
   console.log('User connected');
 
   // Handle custom events and messages here
 
-  socket.on('joinGame', (data) => {
-    console.log(`User ${data.username} joined game ${data.gameId}`);
+    socket.on('joinGame', (data) => {
+        const { username } = data;
 
-    // Store the user's socket in a room for the specific game
-    socket.join(data.gameId);
+        // Find a game with an open slot or create a new game if none are available
+        let game = Object.values(games).find((game) => game.players.length < 2);
 
-    // Initialize the game state for the new game if it doesn't exist
-    if (!games[data.gameId]) {
-      games[data.gameId] = {
-        board: Array.from({ length: boardSize }, () => Array(boardSize).fill(null)),
-        currentPlayer: 'black',
-      };
-    }
+        if (!game) {
+            game = {
+                id: nextGameId++,
+                players: [],
+                board: Array.from({ length: boardSize }, () => Array(boardSize).fill(null)),
+            };
+            games[game.id] = game;
+        }
 
-    // Broadcast to other users in the same room that a new player has joined
-    socket.to(data.gameId).emit('playerJoined', { username: data.username });
-  });
+        // Add the player to the game and store the player's socket
+        game.players.push({ username, socket });
+
+        // Emit a 'playerJoined' event with the assigned game ID and player number
+        socket.emit('playerJoined', {
+            gameId: game.id,
+            playerNumber: game.players.length,
+            username,
+        });
+
+        console.log(`User ${username} joined game ${game.id}`);
+    });
+
 
   socket.on('disconnect', () => {
     console.log('User disconnected');
@@ -106,7 +118,7 @@ app.post('/login', (req, res) => {
                 username: result[0].username,
                 isAdmin: result[0].is_admin,
             };
-            res.json({ message: 'Login successful', redirectTo: result[0].is_admin ? '/admin' : '/user' });
+            res.json({ message: 'Login successful', redirectTo: result[0].is_admin ? '/admin' : '/main' });
         } else {
             res.json({ message: 'Incorrect username or password' });
         }
@@ -152,7 +164,7 @@ app.get('/logout', (req, res) => {
 
 function isAdmin(req, res, next) {
     const userIsAdmin = req.session && req.session.user && req.session.user.isAdmin;
-  
+
     if (userIsAdmin) {
       next();
     } else {
@@ -164,7 +176,7 @@ app.get('/admin', isAdmin, (req, res) => {
     // Send the admin panel HTML file
     res.sendFile(__dirname + '/public' + '/admin.html');
   });
-  
+
   // Get all users route
   app.get('/admin/users', isAdmin, (req, res) => {
     const query = 'SELECT * FROM users';
@@ -177,7 +189,7 @@ app.get('/admin', isAdmin, (req, res) => {
       res.json(results);
     });
   });
-  
+
   // Get game records for a specific user
   app.get('/admin/game-records/:username', isAdmin, (req, res) => {
     const { username } = req.params;
@@ -191,7 +203,7 @@ app.get('/admin', isAdmin, (req, res) => {
       res.json(results);
     });
   });
-  
+
   // Delete a user route
   app.delete('/admin/delete-user/:username', isAdmin, (req, res) => {
     const { username } = req.params;
@@ -205,9 +217,9 @@ app.get('/admin', isAdmin, (req, res) => {
       res.send('User deleted successfully');
     });
   });
-  
+
 
   server.listen(port, () => {
     console.log(`Server running on port ${port}`);
   });
-  
+
