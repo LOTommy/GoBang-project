@@ -2,14 +2,73 @@ const express = require('express');
 const mysql = require('mysql');
 const bodyParser = require('body-parser');
 const session = require('express-session');
+const http = require('http');
+const socketIO = require('socket.io');
 
 const app = express();
 const port = 3000;
+const server = http.createServer(app);
+const io = socketIO(server);
+
+const games =  {};
+
+io.on('connection', (socket) => {
+  console.log('User connected');
+
+  // Handle custom events and messages here
+
+  socket.on('joinGame', (data) => {
+    console.log(`User ${data.username} joined game ${data.gameId}`);
+
+    // Store the user's socket in a room for the specific game
+    socket.join(data.gameId);
+
+    // Initialize the game state for the new game if it doesn't exist
+    if (!games[data.gameId]) {
+      games[data.gameId] = {
+        board: Array.from({ length: boardSize }, () => Array(boardSize).fill(null)),
+        currentPlayer: 'black',
+      };
+    }
+
+    // Broadcast to other users in the same room that a new player has joined
+    socket.to(data.gameId).emit('playerJoined', { username: data.username });
+  });
+
+  socket.on('disconnect', () => {
+    console.log('User disconnected');
+  });
+
+  socket.on('move', (data) => {
+    console.log(`User ${data.username} made a move in game ${data.gameId}`);
+
+    // Update the game state on the server
+    if (games[data.gameId]) {
+      games[data.gameId].board[data.move.row][data.move.col] = data.move.piece;
+      games[data.gameId].currentPlayer = data.move.nextPlayer;
+    }
+
+    // Broadcast the move to other users in the same room
+    socket.to(data.gameId).emit('playerMove', { username: data.username, move: data.move });
+  });
+
+  socket.on('gameUpdate', (data) => {
+    console.log(`Game ${data.gameId} updated`);
+
+    // Update the game state on the server
+    if (games[data.gameId]) {
+      games[data.gameId] = data.newState;
+    }
+
+    // Broadcast the game update to other users in the same room
+    socket.to(data.gameId).emit('gameStateChanged', { gameId: data.gameId, newState: data.newState });
+  });
+});
 
 const db = mysql.createConnection({
-    host: 'localhost',
-    user: 'remoteuser',
-    password: '338rkoqg',
+    host: 'csci3100-mysql-server.mysql.database.azure.com',
+    user: 'ylm',
+    password: 'ibTdY8Kp99gSF6',
     database: 'gobang'
 });
 
@@ -32,7 +91,7 @@ app.use(
 app.use(express.static(__dirname + '/public'));
 
 app.get('/', (req, res) => {
-    res.sendFile(__dirname + '/public' + '/index.html');
+    res.sendFile(__dirname + '/public' + '/login.html');
 });
 
 app.post('/login', (req, res) => {
@@ -83,7 +142,7 @@ app.post('/register', (req, res) => {
 });
 
 app.get('/main', (req, res) => {
-    // Handle main page request
+  res.sendFile(__dirname + '/public' + '/gameboard.html');
 });
 
 app.get('/logout', (req, res) => {
@@ -148,6 +207,7 @@ app.get('/admin', isAdmin, (req, res) => {
   });
   
 
-app.listen(port, () => {
+  server.listen(port, () => {
     console.log(`Server running on port ${port}`);
-});
+  });
+  
