@@ -21,7 +21,7 @@ class Actions extends React.Component {
 
 class Sologame extends React.Component{
   render(){
-      window.location = 'localhost:3000/main';
+      window.location = 'http://localhost:3000/main';
   }
 }
 
