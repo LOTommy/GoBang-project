@@ -106,7 +106,7 @@ app.post('/login', (req, res) => {
                 username: result[0].username,
                 isAdmin: result[0].is_admin,
             };
-            res.json({ message: 'Login successful', redirectTo: '/main' });
+            res.json({ message: 'Login successful', redirectTo: result[0].is_admin ? '/admin' : '/user' });
         } else {
             res.json({ message: 'Incorrect username or password' });
         }
