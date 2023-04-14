@@ -13,8 +13,8 @@ export class CreateAcc extends React.Component {
             </div>
           </div>
           <form className="login-form" action="http://localhost:3000/register" method="POST">
-            <input name='username' type="text" placeholder="username"/>
-            <input name='password' type="password" placeholder="password"/>
+            <input name="username" type="text" placeholder="username"/>
+            <input name="password" type="password" placeholder="password"/>
             <button id="submbtn">Create</button>
             <p className="message">Registered? <Link to="/login"><a href="#">Login</a></Link></p>
           </form>
