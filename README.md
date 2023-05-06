@@ -23,10 +23,8 @@ Phase 2b: GitHub Repository Creation -- Finish
 
 Phase 3: UML Specification and UI Design Document -- Finish
 
-Phase 4: Project Demo -- Due date at 4/13
+Phase 4: Project Demo -- Finish
 
-Phase 5a: Testing Document -- Due date at 5/6
+Phase 5a: Testing Document -- Finish
 
-Phase 5b: Final code -- Due date at 5/6
-
-# Contribution
+Phase 5b: Final code -- Finish
