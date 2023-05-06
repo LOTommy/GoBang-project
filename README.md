@@ -2,6 +2,29 @@
 We are group G6 and here is our course project in CSCI3100 Software Engineering, Spring 2023, CUHK.
 We are building a GoBang game in Python!
 
+## Getting Started
+These instructions will help you set up the project on your local machine for development and testing purposes.
+## Prerequisites
+[Node.js](https://nodejs.org/en/)
+## Installing
+1.  Clone the repository:
+```bash
+git clone https://github.com/LOTommy/GoBang-project.git
+```
+2.  Navigate to the project directory:
+```bash
+cd GoBang-project
+```
+3.  Install the required libraries:
+```bash
+npm install
+```
+4.  Start the development server:
+```bash
+npm start
+```
+The server will start running, and you can access the game at `http://localhost:3000`.
+
 # Group Members
 
 LI Chi, 1155172017
