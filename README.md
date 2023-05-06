@@ -5,7 +5,11 @@ We are building a GoBang game in Python!
 ## Getting Started
 These instructions will help you set up the project on your local machine for development and testing purposes.
 ## Prerequisites
+<<<<<<< HEAD
 [Node.js](https://nodejs.org/en/) (LTS version recommended)
+=======
+[Node.js](https://nodejs.org/en/)
+>>>>>>> 52a231e9669c720717577ec6a1b896f182fa6859
 ## Installing
 1.  Clone the repository:
 ```bash
