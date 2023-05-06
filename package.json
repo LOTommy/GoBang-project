@@ -4,8 +4,8 @@
   "description": "gobang web",
   "main": "app.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+    "start": "node app.js"
+  },  
   "author": "",
   "license": "ISC",
   "dependencies": {
@@ -16,5 +16,14 @@
     "mysql": "^2.18.1",
     "mysql2": "^3.2.0",
     "socket.io": "^4.6.1"
-  }
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/LOTommy/GoBang-project.git"
+  },
+  "bugs": {
+    "url": "https://github.com/LOTommy/GoBang-project/issues"
+  },
+  "homepage": "https://github.com/LOTommy/GoBang-project#readme"
 }
