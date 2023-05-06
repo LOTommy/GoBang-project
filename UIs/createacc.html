@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>My Webpage</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="login-page">
+    <div class="form">
+      <div class="login">
+        <div class="login-header">
+          <h3>Create Account</h3>
+          <p>Please enter your information.</p>
+        </div>
+      </div>
+      <form class="login-form" action="localhost:3000/register" method="POST">
+        <input type="text" placeholder="username"/>
+        <input type="password" placeholder="password"/>
+        <p style="color:red; margin-top: 0%; padding-top: 0%;" id="errmsg"></p>
+        <button id="submbtn">Create</button>
+        <p class="message">Registered? <a href="./login.html">Login</a></p>
+      </form>
+    </div>
+  </div>
+</body>
+</html>
