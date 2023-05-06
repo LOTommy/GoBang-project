@@ -1,5 +1,5 @@
 import asyncio
-from GameBoard import GameBoard
+from classes.GameBoard import GameBoard
 
 COUNT_DOWN = 3
 
@@ -20,10 +20,11 @@ async def main():
 
         Board.run()
 
+        await asyncio.sleep(0)  # Very important, and keep it 0
+
         if not COUNT_DOWN:
             return
 
         COUNT_DOWN = COUNT_DOWN - 1
-        await asyncio.sleep(0)  # Very important, and keep it 0
 
 asyncio.run(main())

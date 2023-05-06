@@ -1,26 +1,30 @@
+// Get references to the HTML elements for the game board, player display, and timers
 const gameBoard = document.getElementById('game-board');
 const currentPlayerDisplay = document.getElementById('current-player');
 const startTimeDisplay = document.getElementById('start-time');
 const elapsedTimeDisplay = document.getElementById('elapsed-time');
-const socket = io();
+const socket = io(); // Create a socket connection
 const boardSize = 19;
 
+// Initialize the game board and player variables
 let board = Array.from({ length: boardSize }, () => Array(boardSize).fill(null));
 let currentPlayer = 'black';
 let myColor = null;
 
+// Helper function to get a query parameter from the URL
 function getQueryParameter(parameter) {
   const urlParams = new URLSearchParams(window.location.search);
   return urlParams.get(parameter);
 }
 
-//const username = sessionStorage.getItem('username');
+// Get the username and gameId from the URL
 const username = getQueryParameter('username');
 const gameId = getQueryParameter('gameId');
 
+// Join the game with the given username and gameId
 joinGame(username, gameId);
 
-// Render the initial game board
+// Render the initial game board by creating and adding cells to the gameBoard element
 for (let row = 0; row < boardSize; row++) {
   for (let col = 0; col < boardSize; col++) {
     const cell = document.createElement('div');
@@ -32,6 +36,7 @@ for (let row = 0; row < boardSize; row++) {
   }
 }
 
+// Function to render the game board based on the board state
 function renderBoard(board) {
   const cells = gameBoard.children;
 
@@ -51,29 +56,30 @@ function renderBoard(board) {
   }
 }
 
-/*socket.emit("create game", {
-  gameId: gameId,
-  username: username, // Use the username from gameboard.html
-});*/
-
+// Function to join a game with the given username and gameId
 function joinGame(username, gameId) {
   socket.emit('joinGame', { username, gameId });
 }
 
+// Socket event listener for when a player joins the game
 socket.on('playerJoined', (data) => {
   console.log(`Player ${data.username} joined the game`);
   const playerNumber = data.playerNumber;
   const playerNames = document.getElementById(`player-${playerNumber}`);
   playerNames.textContent = `Player ${playerNumber}: ${data.username}`;
+
+  // Set the player's color based on their player number
   if (data.username === username) {
     myColor = playerNumber === 1 ? 'black' : 'white';
   }
 });
 
+// Function to make a move with the given username, gameId, and move
 function makeMove(username, gameId, move) {
   socket.emit('move', { username, gameId, move });
 }
 
+// Function to make a random move for the opponent (AI)
 function randomMove() {
   let x = Math.floor(Math.random() * boardSize);
   let y = Math.floor(Math.random() * boardSize);
@@ -85,35 +91,40 @@ function randomMove() {
   }
 }
 
+// Socket event listener for when a player makes a move
 socket.on('playerMove', (data) => {
   console.log(`Player ${data.username} made a move`);
-  // Update the UI or game state with the new move
+  // Update the game board UI and state with the new move
   const { row, col, color } = data.move;
   board[row][col] = color;
   renderBoard(board);
 
+  // Check if the move resulted in a win
   if (checkWin(row, col)) {
     alert(`Player ${currentPlayer === 'black' ? 1 : 2} (${currentPlayer}) wins!`);
   } else {
+    // Update the current player
     currentPlayer = currentPlayer === 'black' ? 'white' : 'black';
     currentPlayerDisplay.textContent = `Current Player: Player ${currentPlayer === 'black' ? 1 : 2} (${currentPlayer})`;
   }
 });
 
+// Function to update the game state with the given gameId and newState
 function updateGame(gameId, newState) {
   socket.emit('gameUpdate', { gameId, newState });
 }
 
+// Socket event listener for when the game state changes
 socket.on('gameStateChanged', (data) => {
   console.log(`Game ${data.gameId} updated`);
-  // Update the UI or game state with the new game state
+  // Update the game board UI and state with the new game state
   board = data.newState.board;
   currentPlayer = data.newState.currentPlayer;
   renderBoard(board);
   currentPlayerDisplay.textContent = `Current Player: Player ${currentPlayer === 'black' ? 1 : 2} (${currentPlayer})`;
 });
 
-// Start the game timer
+// Start the game timer and display it on the page
 const startTime = new Date();
 startTimeDisplay.textContent = `Start Time: ${startTime.toLocaleTimeString()}`;
 setInterval(() => {
@@ -123,6 +134,7 @@ setInterval(() => {
   elapsedTimeDisplay.textContent = `Elapsed Time: ${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
 }, 1000);
 
+// Event handler for when a cell is clicked
 function handleCellClick(event) {
   if (currentPlayer !== myColor) {
     alert("It's not your turn!");
@@ -131,24 +143,30 @@ function handleCellClick(event) {
   const row = parseInt(event.currentTarget.dataset.row, 10);
   const col = parseInt(event.currentTarget.dataset.col, 10);
 
+  // Check if the cell is already occupied
   if (board[row][col] !== null) {
     alert('This cell is already occupied!');
     return;
   }
 
+  // Update the board state and UI with the new move
   board[row][col] = currentPlayer;
   renderBoard(board);
 
+  // Send the move to the server
   makeMove(username, gameId, { row, col, color: currentPlayer });
 
+  // Check if the move resulted in a win
   if (checkWin(row, col)) {
     alert(`Player ${currentPlayer === 'black' ? 1 : 2} (${currentPlayer}) wins!`);
   } else {
+    // Make a random move for the opponent (AI) and update the board UI
     randomMove();
     renderBoard(board);
   }
 }
 
+// Function to check if a player has won by placing a piece at the given row and col
 function checkWin(row, col) {
     const directions = [
       { dr: -1, dc: 0 }, // up
@@ -201,6 +219,4 @@ function checkWin(row, col) {
     }
   
     return false;
-  }
-  
-
+}

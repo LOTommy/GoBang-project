@@ -6,9 +6,9 @@ import mysql.connector
 import matplotlib.image as mpimg
 
 
-from Player import Player
-from Square import Square
-from Piece import Piece
+from .Player import Player
+from .Square import Square
+from .Piece import Piece
 
 WIDTH_MARGIN=300
 HEIGHT_MARGIN=100
